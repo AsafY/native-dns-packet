@@ -279,14 +279,17 @@ function writeCname(buff, val, label_index) {
 // For <character-string> see: http://tools.ietf.org/html/rfc1035#section-3.3
 // For TXT: http://tools.ietf.org/html/rfc1035#section-3.3.14
 function writeTxt(buff, val) {
-  //TODO XXX FIXME -- split on max char string and loop
-  assertUndefined(val.data, 'TXT record requires "data"');
-  for (var i=0,len=val.data.length; i<len; i++) {
-    var dataLen = Buffer.byteLength(val.data[i], 'utf8');
-    buff.writeUInt8(dataLen);
-    buff.write(val.data[i], dataLen, 'utf8');
-  }
-  return WRITE_RESOURCE_DONE;
+    assertUndefined(val.data, 'TXT record requires "data"');
+    for (var i = 0, len = val.data.length; i < len; i++) {
+        let str = val.data[i];
+        let sstr = str.match(/(.|[\r\n]){1,255}/g);
+        sstr.forEach(data => {
+            var dataLen = Buffer.byteLength(data, 'utf8');
+            buff.writeUInt8(dataLen);
+            buff.write(data, dataLen, 'utf8');
+        });
+    }
+    return WRITE_RESOURCE_DONE;
 }
 
 function writeMx(buff, val, label_index) {
